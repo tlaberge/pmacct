@@ -25,6 +25,7 @@
 #include "pmacct.h"
 #include "imt_plugin.h"
 #include "crc32.h"
+#include "bgp/bgp.h"
 
 /* functions */
 struct acc *search_accounting_structure(struct primitives_ptrs *prim_ptrs)
@@ -85,14 +86,21 @@ int compare_accounting_structure(struct acc *elem, struct primitives_ptrs *prim_
 
   res_data = memcmp(&elem->primitives, data, sizeof(struct pkt_primitives));
 
-  if (pbgp && elem->pbgp) res_bgp = memcmp(elem->pbgp, pbgp, sizeof(struct pkt_bgp_primitives));
+  if (pbgp) {
+    if (elem->cbgp) {
+      struct pkt_bgp_primitives tmp_pbgp;
+
+      cache_to_pkt_bgp_primitives(&tmp_pbgp, elem->cbgp);
+      res_bgp = memcmp(&tmp_pbgp, pbgp, sizeof(struct pkt_bgp_primitives));
+    }
+  }
   else res_bgp = FALSE;
 
   if (plbgp) {
     if (elem->clbgp) {
       struct pkt_legacy_bgp_primitives tmp_plbgp;
 
-      cache_to_pkt_legacy_bgp_primitives(&tmp_plbgp, elem->clbgp, config.what_to_count);
+      cache_to_pkt_legacy_bgp_primitives(&tmp_plbgp, elem->clbgp);
       res_lbgp = memcmp(&tmp_plbgp, plbgp, sizeof(struct pkt_legacy_bgp_primitives));
     }
   }
@@ -133,6 +141,7 @@ void insert_accounting_structure(struct primitives_ptrs *prim_ptrs)
   unsigned int pn_size = sizeof(struct pkt_nat_primitives);
   unsigned int pm_size = sizeof(struct pkt_mpls_primitives);
   unsigned int pc_size = config.cpptrs.len;
+  unsigned int cb_size = sizeof(struct cache_bgp_primitives);
   unsigned int clb_size = sizeof(struct cache_legacy_bgp_primitives);
 
   /* We are classifing packets. We have a non-zero bytes accumulator (ba)
@@ -224,19 +233,18 @@ void insert_accounting_structure(struct primitives_ptrs *prim_ptrs)
       memcpy(&elem_acc->primitives, addr, sizeof(struct pkt_primitives));
 
       if (pbgp) {
-        if (!elem_acc->pbgp) {
-          elem_acc->pbgp = (struct pkt_bgp_primitives *) malloc(pb_size);
-          if (!elem_acc->pbgp) {
-            Log(LOG_ERR, "ERROR ( %s/%s ): malloc() failed (insert_accounting_structure). Exiting ..\n", config.name, config.type);
-            exit_plugin(1);
+	if (!elem_acc->cbgp) {
+	  elem_acc->cbgp = (struct cache_bgp_primitives *) malloc(cb_size);
+	  if (!elem_acc->cbgp) {
+	    Log(LOG_ERR, "ERROR ( %s/%s ): malloc() failed (insert_accounting_structure). Exiting ..\n", config.name, config.type);
+	    exit_plugin(1);
           }
-        }
-        memcpy(elem_acc->pbgp, pbgp, pb_size);
+	}
+
+	memset(elem_acc->cbgp, 0, cb_size);
+        pkt_to_cache_bgp_primitives(elem_acc->cbgp, pbgp, config.what_to_count);
       }
-      else {
-        if (elem_acc->pbgp) free(elem_acc->pbgp);
-        elem_acc->pbgp = NULL;
-      }
+      else free_cache_bgp_primitives(&elem_acc->cbgp);
 
       if (plbgp) {
         if (!elem_acc->clbgp) {
@@ -366,14 +374,15 @@ void insert_accounting_structure(struct primitives_ptrs *prim_ptrs)
       memcpy(&elem_acc->primitives, addr, sizeof(struct pkt_primitives));
 
       if (pbgp) {
-        elem_acc->pbgp = (struct pkt_bgp_primitives *) malloc(pb_size);
-        if (!elem_acc->pbgp) {
+        elem_acc->cbgp = (struct cache_bgp_primitives *) malloc(cb_size);
+        if (!elem_acc->cbgp) {
           Log(LOG_ERR, "ERROR ( %s/%s ): malloc() failed (insert_accounting_structure). Exiting ..\n", config.name, config.type);
           exit_plugin(1);
-        }
-        memcpy(elem_acc->pbgp, pbgp, pb_size);
+	}
+        memset(elem_acc->cbgp, 0, cb_size);
+        pkt_to_cache_bgp_primitives(elem_acc->cbgp, pbgp, config.what_to_count);
       }
-      else elem_acc->pbgp = NULL;
+      else elem_acc->cbgp = NULL;
 
       if (plbgp) {
         elem_acc->clbgp = (struct cache_legacy_bgp_primitives *) malloc(clb_size);

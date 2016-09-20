@@ -24,6 +24,7 @@
 
 /* includes */
 #include "pmacct.h"
+#include "addr.h"
 #include "thread_pool.h"
 #include "telemetry.h"
 #if defined WITH_RABBITMQ
