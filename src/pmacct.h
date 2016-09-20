@@ -45,6 +45,10 @@
 #include <malloc.h>
 #endif
 
+#if defined (HAVE_ZLIB)
+#include <zlib.h>
+#endif
+
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -360,6 +364,9 @@ pm_setproctitle(const char *fmt, ...);
 #error
 pm_setproctitle(fmt, va_alist);
 #endif /* __STDC__ */
+
+void
+initsetproctitle(int, char**, char**);
 
 /* global variables */
 #if (!defined __PMACCTD_C) && (!defined __NFACCTD_C) && (!defined __SFACCTD_C) && (!defined __UACCTD_C) && (!defined __PMTELEMETRYD_C) && (!defined __PMBGPD_C) && (!defined __PMBMPD_C)
