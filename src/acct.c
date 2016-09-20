@@ -25,6 +25,7 @@
 #include "pmacct.h"
 #include "imt_plugin.h"
 #include "crc32.h"
+#include "bgp/bgp.h"
 
 /* functions */
 struct acc *search_accounting_structure(struct primitives_ptrs *prim_ptrs)
@@ -89,7 +90,7 @@ int compare_accounting_structure(struct acc *elem, struct primitives_ptrs *prim_
     if (elem->cbgp) {
       struct pkt_bgp_primitives tmp_pbgp;
 
-      cache_to_pkt_bgp_primitives(&tmp_pbgp, elem->cbgp, config.what_to_count);
+      cache_to_pkt_bgp_primitives(&tmp_pbgp, elem->cbgp);
       res_bgp = memcmp(&tmp_pbgp, pbgp, sizeof(struct pkt_bgp_primitives));
     }
   }
@@ -99,7 +100,7 @@ int compare_accounting_structure(struct acc *elem, struct primitives_ptrs *prim_
     if (elem->clbgp) {
       struct pkt_legacy_bgp_primitives tmp_plbgp;
 
-      cache_to_pkt_legacy_bgp_primitives(&tmp_plbgp, elem->clbgp, config.what_to_count);
+      cache_to_pkt_legacy_bgp_primitives(&tmp_plbgp, elem->clbgp);
       res_lbgp = memcmp(&tmp_plbgp, plbgp, sizeof(struct pkt_legacy_bgp_primitives));
     }
   }

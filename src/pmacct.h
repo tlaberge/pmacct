@@ -52,6 +52,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
+#include <net/if.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -351,6 +352,14 @@ size_t strlcpy(char *, const char *, size_t);
 int json_object_update_missing(json_t *, json_t *);
 #endif
 #endif
+
+void
+#ifdef __STDC__
+pm_setproctitle(const char *fmt, ...);
+#else /* __STDC__ */
+#error
+pm_setproctitle(fmt, va_alist);
+#endif /* __STDC__ */
 
 /* global variables */
 #if (!defined __PMACCTD_C) && (!defined __NFACCTD_C) && (!defined __SFACCTD_C) && (!defined __UACCTD_C) && (!defined __PMTELEMETRYD_C) && (!defined __PMBGPD_C) && (!defined __PMBMPD_C)
