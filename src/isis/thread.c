@@ -217,7 +217,7 @@ static unsigned int
 cpu_record_hash_key (struct cpu_thread_history *a)
 {
   /* XXX: uintptr_t not portable: changed to "unsigned int *" */
-  return (unsigned int)(unsigned long int) a->func;
+  return (unsigned int) a->func;
 }
 
 static int 

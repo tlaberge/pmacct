@@ -34,7 +34,6 @@
 #include "isis/isis-data.h"
 #include "crc32.h"
 #include "pmacct-data.h"
-#include "plugin_hooks.h"
 
 /*
    XXX: load_id_file() interface cleanup pending:
@@ -761,7 +760,6 @@ int pretag_entry_process(struct id_entry *e, struct packet_ptrs *pptrs, pm_id_t 
   int j = 0;
   pm_id_t id = 0, stop = 0, ret = 0;
   pt_label_t label_local;
-  struct plugin_requests req;
 
   e->last_matched = FALSE;
 
@@ -816,7 +814,7 @@ int pretag_entry_process(struct id_entry *e, struct packet_ptrs *pptrs, pm_id_t 
 
     if (e->jeq.ptr) {
       if (e->ret) {
-	exec_plugins(pptrs, &req);
+	exec_plugins(pptrs);
 	set_shadow_status(pptrs);
 	*tag = 0;
 	*tag2 = 0;
